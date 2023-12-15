@@ -1,0 +1,72 @@
+<?php
+// connect to the database
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "URL";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// check connection
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+
+// create the table if not exists
+$sql = "CREATE TABLE IF NOT EXISTS Urltable (
+  URL VARCHAR(255) PRIMARY KEY,
+  Description VARCHAR(255) NOT NULL
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Urltable created successfully<br>";
+} else {
+  echo "Error creating table: " . $conn->error . "<br>";
+}
+
+// get the user input from a form
+if (isset($_POST['submit'])) {
+  $url = $_POST['url'];
+  $desc = $_POST['desc'];
+
+  // validate the input
+  if (filter_var($url, FILTER_VALIDATE_URL) && !empty($desc)) {
+    // insert the data into the table
+    $sql = "INSERT INTO Urltable (URL, Description) VALUES ('$url', '$desc')";
+
+    if ($conn->query($sql) === TRUE) {
+      echo "New record inserted successfully<br>";
+    } else {
+      echo "Error: " . $sql . "<br>" . $conn->error . "<br>";
+    }
+  } else {
+    echo "Invalid input<br>";
+  }
+}
+
+// display the contents of the table
+$sql = "SELECT * FROM Urltable";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // print the table in HTML
+  echo "<table border='1'>";
+  echo "<tr><th>URL</th><th>Description</th></tr>";
+  while($row = $result->fetch_assoc()) {
+    echo "<tr><td>" . $row["URL"] . "</td><td>" . $row["Description"] . "</td></tr>";
+  }
+  echo "</table>";
+} else {
+  echo "No records found<br>";
+}
+
+// close the connection
+$conn->close();
+?>
+
+<!-- create a form for user input -->
+<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+  URL: <input type="text" name="url" placeholder="Enter a URL"><br>
+  Description: <input type="text" name="desc" placeholder="Enter a description"><br>
+  <input type="submit" name="submit" value="Submit">
+</form>
